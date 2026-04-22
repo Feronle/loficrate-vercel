@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Track {
+  id             String   @id @default(cuid())
+  title          String
+  artist         String
+  genre          String   // lofi-hiphop, lofi-chill, lofi-ambient, lofi-jazz, lofi-study, chillhop, vaporwave, downtempo, dream-pop, ambient
+  mood           String   // calm, melancholic, peaceful, dreamy, nostalgic, cozy, focused, romantic, sad, uplifting
+  tempo          String   // slow, medium, fast
+  instrument     String   // piano, guitar, synth, drums, sax, flute, violin, mixed
+  durationSec    Int      // duration in seconds
+  licenseType    String   // CC-BY-4.0, CC-BY-3.0, CC-BY-SA, CC0, Pixabay, Custom
+  licenseUrl     String
+  sourceUrl      String
+  sourcePlatform String   // YouTube, YouTube-Audio-Library, FMA, SoundCloud, Pixabay, Mixkit, Incompetech, Bensound, Chosic, Other
+  coverArt       String?  // URL or path to cover art
+  tags           String?  // comma-separated tags
+  notes          String?  // additional notes about usage restrictions
+  isYoutubeSafe  Boolean  @default(true) // whether this track is safe for YouTube monetization
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  playlistItems PlaylistTrack[]
+}
+
+model Playlist {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  targetDuration Int      @default(3600) // target duration in seconds (default 1 hour)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tracks PlaylistTrack[]
+}
+
+model PlaylistTrack {
+  id         String   @id @default(cuid())
+  playlistId String
+  trackId    String
+  position   Int      // order in playlist
+  createdAt  DateTime @default(now())
+
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  track    Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, trackId])
+}
